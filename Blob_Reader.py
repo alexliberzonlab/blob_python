@@ -108,7 +108,7 @@ class blobReader(object):
         f = open(fName, "rb")
         self.fname = fName
         self.FrameCount += unpack('<i', f.read(4))[0]
-        print 'total Frame number: %d'%self.FrameCount        
+        print ('total Frame number: %d'%self.FrameCount)        
         
         # time in [day,mounth,year,hour,minute,sec,msec]:
         for j in [self.tStart, self.tEnd]:
@@ -378,7 +378,9 @@ class extractor(object):
     
     
     def load(self ,  FrameStart = None, FrameEnd = None):
-        os.chdir(self.dir)
+        print(os.path.exists(self.dir))
+        os.chdir(os.path.abspath(self.dir))
+        print(os.path.abspath(os.curdir))
         
         if self.coord_fmt == float:
             FloatCoords = True
@@ -386,7 +388,7 @@ class extractor(object):
             FloatCoords = False
             
         for i in range(self.n):
-            print 'unpacking blob%d'%i + '...'
+            print ('unpacking blob%d'%i + '...')
             self.readers[i].ReadBlobFile(self.blbFls[i], FrameStart ,
                         FrameEnd, FloatCoords = FloatCoords)
       
@@ -464,12 +466,12 @@ class extractor(object):
         k = 6 + decimals
         for targ in l:
             b[int(targ[4])].append(int(targ[6:k]))
-        print 'finished saving targets! start and end frames are:'
+        print ('finished saving targets! start and end frames are:')
         m1,m2 = [],[]
         for i in b:
             m1.append(min(i))
             m2.append(max(i))
-        print max( m1 ) , min( m2 )
+        print (max( m1 ) , min( m2 ))
         
         
     def get_potential_good_frames(self):
@@ -485,7 +487,7 @@ class extractor(object):
             if t[1]>mx: mx = t[1]
         frm = range(int(mn), int(mx)+1)
         time = 0.001*(mx-mn)
-        print 'time estimate ~ %0.1f seconds'%time
+        print ('time estimate ~ %0.1f seconds'%time)
         potential = []
         for i in frm:
             k, n = 0, 0

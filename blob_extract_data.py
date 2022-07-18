@@ -11,16 +11,12 @@ import matplotlib.pyplot as plt
 from skimage.io import imread , imshow
 
 
-directory = 'D:/Liran_2018_July/160718'
-os.chdir(directory)
+directory = r'C:\Users\User\Documents\repos\blob_python\data' 
 
-
-
-blobfiles = ['b0.dat',
-             'b1.dat',
-             'b2.dat',
-             'b3.dat']
-
+blobfiles = ['blob0_2022.07.18_16.26.22_part0.dat',
+             'blob1_2022.07.18_16.26.44_part0.dat',
+             'blob2_2022.07.18_16.26.59_part0.dat',
+             'blob3_2022.07.18_16.27.15_part0.dat']
 
 
 FrameStart = None    # Leave None to go over all the frames
@@ -38,8 +34,8 @@ ex.load(FrameStart ,FrameEnd)
 
 
 
-#ex.plot_frame_count()
-#ex.plot_frames(FrameStart,FrameEnd) 
-# ex.gen_Target_Files()
-#plt.hold(True)
-#imshow(imread('cam0.tif'))
+ex.plot_frame_count()
+ex.plot_frames(FrameStart,FrameEnd) 
+ex.gen_Target_Files(0, 49901)
+# plt.hold(True)
+# imshow(imread('cam0.tif'))

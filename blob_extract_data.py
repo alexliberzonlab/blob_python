@@ -5,7 +5,7 @@ Created on Thu Oct 13 12:36:18 2016
 @author: User
 """
 
-from Blob_Reader import blobReader, extractor
+from Blob_Reader import BlobReader, extractor
 import os
 import matplotlib.pyplot as plt
 from skimage.io import imread , imshow

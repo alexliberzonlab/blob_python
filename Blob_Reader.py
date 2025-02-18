@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-This is a script for reading a blobRecorder flie.
-written by Ron Shnapp
-july-20-2016
+This is a script for reading a blobRecorder file.
 """
 
 from struct import unpack
-from pandas import DataFrame
+import pandas as pd
 import os
 import numpy as np
 from PIL import Image
@@ -17,11 +15,10 @@ import sys
 #File2extrac = blobfiles[0]
 
 
-
-class blobReader(object):
+class BlobReader(object):
     '''
-    a reader of blobrecorder generated files.
-    the blobrecorder .dat files are Little-Endian binary files
+    A reader of blobrecorder generated files.
+    The blobrecorder .dat files are Little-Endian binary files
     each file has 60 bytes of header
     each frame has 12 bytes of header
     blobs are 16 bytes long each
@@ -30,28 +27,27 @@ class blobReader(object):
     is a pandas dataframe object  
     
     - use ReadBlobFile('blob file Name') to read the data from the file 
-    into the blobreader instance
-    
+    into the BlobReader instance
     - use saveframes() to save the blob data on the disk as csv 
     '''
     def __init__(self):
         self.fname = ''
-        self.HeaderSize = 15            # Each blobreader file descriptor is 15 bytes
+        self.HeaderSize = 15            # Each blobReader file descriptor is 15 bytes
         self.FrameHeaderSize = 3        # Each frame descriptor is 3 bytes
         self.BlobFeaturesSize = 16      # Each blob descriptor is 16 bytes
         self.FrameCount = 0             # number of frames of the object
         self.tStart = [0,0,0,0,0,0,0]   # recording start time
         self.tEnd = [0,0,0,0,0,0,0]     # recording end time
         # the blobs data itself as a pandas DataFrame object:
-        self.Blobs = DataFrame(columns=['x0','x1','y0','y1','Xcog','Ycog','Area','time','Frame'])
+        self.Blobs = pd.DataFrame(columns=['x0','x1','y0','y1','Xcog','Ycog','Area','time','Frame'])
         
         
     def __repr__(self):
         a = 'BlobReader object \n'
-        b = 'Frames: %d \n'%self.FrameCount
-        c = 'Record Start: %0.2d-%0.2d-%0.4d %0.2d:%0.2d:%0.2d.%0.2d \n'%tuple(self.tStart)
-        d = 'Record End: %0.2d-%0.2d-%0.4d %0.2d:%0.2d:%0.2d.%0.2d \n'%tuple(self.tEnd)
-        e = 'Blobs: %d \n'%len(self.Blobs)
+        b = f'Frames: {self.FrameCount} \n'
+        c = f'Record Start: {self.tStart[0]:02d}-{self.tStart[1]:02d}-{self.tStart[2]:04d} {self.tStart[3]:02d}:{self.tStart[4]:02d}:{self.tStart[5]:02d}.{self.tStart[6]:02d} \n'
+        d = f'Record End: {self.tEnd[0]:02d}-{self.tEnd[1]:02d}-{self.tEnd[2]:04d} {self.tEnd[3]:02d}:{self.tEnd[4]:02d}:{self.tEnd[5]:02d}.{self.tEnd[6]:02d} \n'
+        e = f'Blobs: {len(self.Blobs)} \n'
         return '\n' + a + b + e + c + d
         
 
@@ -105,61 +101,62 @@ class blobReader(object):
         else:
             readBlob = self.ReadSingleBlob
         
-        f = open(fName, "rb")
-        self.fname = fName
-        self.FrameCount += unpack('<i', f.read(4))[0]
-        print ('total Frame number: %d'%self.FrameCount)        
-        
-        # time in [day,mounth,year,hour,minute,sec,msec]:
-        for j in [self.tStart, self.tEnd]:
-            for i in range(7):
-                j[i] = unpack('<i', f.read(4))[0]
-        
-        # dispose unwanted frames:
+        with open(fName, "rb") as f:
+            self.fname = fName
+            self.FrameCount += unpack('<i', f.read(4))[0]
 
-        if FrameEnd == None or FrameEnd > self.FrameCount:
-            FrameEnd = self.FrameCount
-        if FrameStart == None:
-            FrameStart = 0          
-        
-        for i in range(FrameStart):
-            #frame header
-            head = []
-            for j in range(self.FrameHeaderSize):
-                head.append(unpack('<i', f.read(4))[0])
-            #blobs:
-            #print 'N Blobs: ' + str(head[2])  
-            for j in range(head[2]):
-                [f.read(2) for i in range(4)]
-                f.read(4)
-                [f.read(2) for i in range(2)]
-        
-        
-        # get blobs of wanted frames:
-        
-        # for each frame in  the file:
-        blobsSighted = []
-        cycles = FrameEnd - FrameStart
-        for i in range(cycles):
-            #get frame header = [timeStamp, Frame number, blob count]:
-            head = []
-            for j in range(self.FrameHeaderSize):
-                head.append(unpack('<i', f.read(4))[0])
-            #get blobs:
-            
-            bin_size = 100000 
-            counter = 0
-            for j in range(head[2]):
-                blobsSighted.append(readBlob(f, head))
-                counter += 1                
-                if counter >= bin_size:
-                    temp = DataFrame(blobsSighted, columns=['x0','x1','y0','y1','Xcog','Ycog','Area','time','Frame'])
-                    self.Blobs = self.Blobs.append(temp, ignore_index=True)
-                    counter = 0
-                    blobsSighted = []
-                    
-        temp = DataFrame(blobsSighted, columns=['x0','x1','y0','y1','Xcog','Ycog','Area','time','Frame'])
-        self.Blobs = self.Blobs.append(temp, ignore_index=True)
+            print(f'total Frame number: {self.FrameCount}')        
+
+            # time in [day,mounth,year,hour,minute,sec,msec]:
+            for j in [self.tStart, self.tEnd]:
+                for i in range(7):
+                    j[i] = unpack('<i', f.read(4))[0]
+
+            # dispose unwanted frames:
+
+            if FrameEnd == None or FrameEnd > self.FrameCount:
+                FrameEnd = self.FrameCount
+            if FrameStart == None:
+                FrameStart = 0          
+
+            for i in range(FrameStart):
+                #frame header
+                head = []
+                for j in range(self.FrameHeaderSize):
+                    head.append(unpack('<i', f.read(4))[0])
+                #blobs:
+                #print 'N Blobs: ' + str(head[2])  
+                for j in range(head[2]):
+                    [f.read(2) for i in range(4)]
+                    f.read(4)
+                    [f.read(2) for i in range(2)]
+
+
+            # get blobs of wanted frames:
+
+            # for each frame in  the file:
+            blobsSighted = []
+            cycles = FrameEnd - FrameStart
+            for i in range(cycles):
+                #get frame header = [timeStamp, Frame number, blob count]:
+                head = []
+                for j in range(self.FrameHeaderSize):
+                    head.append(unpack('<i', f.read(4))[0])
+                #get blobs:
+
+                bin_size = 100000 
+                counter = 0
+                for j in range(head[2]):
+                    blobsSighted.append(readBlob(f, head))
+                    counter += 1                
+                    if counter >= bin_size:
+                        temp = pd.DataFrame(blobsSighted, columns=['x0','x1','y0','y1','Xcog','Ycog','Area','time','Frame'])
+                        self.Blobs = pd.concat([self.Blobs, temp], ignore_index=True)
+                        counter = 0
+                        blobsSighted = []
+
+            temp = pd.DataFrame(blobsSighted, columns=['x0','x1','y0','y1','Xcog','Ycog','Area','time','Frame'])
+            self.Blobs = pd.concat([self.Blobs, temp], ignore_index=True)
 
 
     def SaveCsv(self, fname = None):
@@ -362,9 +359,10 @@ class extractor(object):
         self.blbFls = blobFiles
         self.n = len(self.blbFls)
         self.readers = []
+        self.coord_format = coord_format
         for i in range(self.n):
-            self.readers.append(blobReader())
-        self.coord_fmt = coord_format
+            # self.readers.append(blobReader())
+            self.readers.append(BlobReader())
     
     
     def __repr__(self):
@@ -382,9 +380,9 @@ class extractor(object):
         os.chdir(os.path.abspath(self.dir))
         print(os.path.abspath(os.curdir))
         
-        if self.coord_fmt == float:
+        if self.coord_format == float:
             FloatCoords = True
-        elif self.coord_fmt == int:
+        elif self.coord_format == int:
             FloatCoords = False
             
         for i in range(self.n):
@@ -413,7 +411,7 @@ class extractor(object):
         seen in frame    f_start<f<f_last 
         '''
         color = ['b','r','g','y','k']
-        fig,ax = plt.subplots()
+        fig, ax = plt.subplots()
         for i in range(self.n):
             a = self.readers[i].Blobs[self.readers[i].Blobs.Frame > f_start]
             a = a[a.Frame < f_last]
@@ -421,6 +419,7 @@ class extractor(object):
         ax.legend()
         ax.set_xlabel('frame #')
         ax.set_ylabel('number of blobs')
+        plt.show()
                     
             
     def gen_Target_Files(self,f_start,f_last, decimals=4, start_count=0):
@@ -435,10 +434,10 @@ class extractor(object):
         formating = '%0.' + str(decimals) + 'd'
         
         for i in range(self.n):
-            baseFname = 'blob%d'%i
+            baseFname = f'blob{i}'
             a = self.readers[i].Blobs[self.readers[i].Blobs.Frame >= f_start]
             a = a[a.Frame <= f_last]
-            temp = blobReader()
+            temp = BlobReader()
             temp.Blobs = a
             temp.fname = baseFname
             temp.SaveTargets( decimals = decimals, start_count = start_count)
@@ -504,7 +503,7 @@ class extractor(object):
         '''
         plot the nmber of blobs seen at each frame
         '''
-        mi,mx = sys.maxint , 0
+        mi,mx = sys.maxsize , 0
         for i in range(self.n):
             f,c = self.readers[i].Blob_count()
             f = list(f)
@@ -515,38 +514,21 @@ class extractor(object):
         
 
     
-def bits_from_file(N, File):
-    '''will read N bytes from File and return 
+def bits_to_int(bits):
+    '''return an integer from a string that represents a binary number '''
+    return int(bits, 2)
+
+
+def bits_from_file(n, file):
+    '''will read n bytes from file and return 
     the data in bits'''
-    h_bytes = []
-    for i in range(N):
-        h_bytes.append(File.read(1))
+    h_bytes = [file.read(1) for _ in range(n)]
     h_bits = ''
     for b in h_bytes:
         bits = bin(ord(b))[2:].rjust(8, '0')
-        for d in range(len(bits)-1,-1,-1):
-            h_bits += bits[d]
-    return h_bits
-    
-
-
-
-
-
-def bits2int(bits):
-    '''return an integer from a string thatrepresents
-       a binary number '''
-    bits = [int(x) for x in bits[::-1]]
-    x = 0
-    for i in range(len(bits)):
-        x += bits[i]*2**i
-    return x
-
-
-
-
-    
-def ReadSingleBlob_float_coordinates(self , File, FrameHeader):
+def bits_to_int(bits):
+    '''return an integer from a string that represents a binary number '''
+    return int(bits, 2)
     '''
     will read the blob data from a blob file that was written
     in the "NEW style" with floating number coordinates
@@ -561,11 +543,11 @@ def ReadSingleBlob_float_coordinates(self , File, FrameHeader):
     higher_bit = bits_from_file(8, File)
     A = bits2int(higher_bit[:20])         # Area
     x_frac = bits2int(higher_bit[24:32])
-    x_int = bits2int(higher_bit[32:44])
-    y_frac = bits2int(higher_bit[44:52])
-    y_int = bits2int(higher_bit[52:64])
-    X = x_int + x_frac/256.0            # x center of gravity
-    Y = y_int + y_frac/256.0            # y center of gravity
+    A = bits_to_int(higher_bit[:20])         # Area
+    x_frac = bits_to_int(higher_bit[24:32])
+    x_int = bits_to_int(higher_bit[32:44])
+    y_frac = bits_to_int(higher_bit[44:52])
+    y_int = bits_to_int(higher_bit[52:64])
     return [ x0, x1, y0, y1, X, Y, A, FrameHeader[0] , FrameHeader[1] ]
    
 

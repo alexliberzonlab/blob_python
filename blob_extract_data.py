@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from skimage.io import imread , imshow
 
 
-directory = r'C:\Users\User\Documents\repos\blob_python\data' 
+directory = './data' 
 
 blobfiles = ['blob0_2022.07.18_16.26.22_part0.dat',
              'blob1_2022.07.18_16.26.44_part0.dat',

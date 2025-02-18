@@ -459,7 +459,9 @@ class extractor(object):
     
     
     def __init__(self, directory, blobFiles, coord_format = float):
+        # print(os.path.abspath(os.curdir))
         self.dir = directory
+        print(os.path.abspath(self.dir))
         self.blbFls = blobFiles   # list(strings) blob data file name
         self.n = len(self.blbFls)
         self.readers = []
@@ -491,6 +493,7 @@ class extractor(object):
     
     
     def load(self ,  FrameStart = None, FrameEnd = None):
+        # print(os.path.abspath(self.dir))
         os.chdir(self.dir)
         
         if self.coord_format == float:
@@ -571,7 +574,8 @@ class extractor(object):
         directory = os.path.join(os.getcwd() , 'Target_Files')
         
         if os.path.exists(directory):
-            raise ValueError('Target_Files folder allready exsists.')
+            # raise ValueError('Target_Files folder allready exsists.')
+            print("Warning, overwritting directory")
         
             # usr = raw_input('Target_Files folder allready exsists. continue anyway? (y/n)')
             # if usr == 'y':

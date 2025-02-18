@@ -34,8 +34,8 @@ ex.load(FrameStart ,FrameEnd)
 
 
 
-ex.plot_frame_count()
-ex.plot_frames(FrameStart,FrameEnd) 
+fig, ax = ex.plot_frame_count()
+fig, ax = ex.plot_frames(FrameStart,FrameEnd)
 ex.gen_Target_Files(0, 49901)
 # plt.hold(True)
 # imshow(imread('cam0.tif'))

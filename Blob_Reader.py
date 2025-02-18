@@ -48,13 +48,13 @@ class BlobReader(object):
         c = f'Record Start: {self.tStart[0]:02d}-{self.tStart[1]:02d}-{self.tStart[2]:04d} {self.tStart[3]:02d}:{self.tStart[4]:02d}:{self.tStart[5]:02d}.{self.tStart[6]:02d} \n'
         d = f'Record End: {self.tEnd[0]:02d}-{self.tEnd[1]:02d}-{self.tEnd[2]:04d} {self.tEnd[3]:02d}:{self.tEnd[4]:02d}:{self.tEnd[5]:02d}.{self.tEnd[6]:02d} \n'
         e = f'Blobs: {len(self.Blobs)} \n'
-        return '\n' + a + b + e + c + d
+        return f'\n{a}{b}{e}{c}{d}'
         
 
     def ReadSingleBlob(self , File, FrameHeader):
         '''
         will read the blob data from a blob file that was written
-        in the "old style" without floating number coordinates
+        in the "old style" without floating number coordinates  
         '''
         x0 = (unpack('<h', File.read(2))[0]) # bounding box x0
         x1 = (unpack('<h', File.read(2))[0]) # bounding box x1
@@ -356,8 +356,8 @@ class extractor(object):
     
     def __init__(self, directory, blobFiles, coord_format = float):
         self.dir = directory
-        self.blbFls = blobFiles
-        self.n = len(self.blbFls)
+        self.blobFiles = blobFiles
+        self.n = len(self.blobFiles)
         self.readers = []
         self.coord_format = coord_format
         for i in range(self.n):
@@ -366,16 +366,16 @@ class extractor(object):
     
     
     def __repr__(self):
-        s = 'blob extractor from: %s \n \n'%(self.dir)
+        s = f'blob extractor from: {self.dir} \n \n'
         for i in range(self.n):
             f0,fn = int(min(self.readers[i].Blobs['Frame'])) , int(max(self.readers[i].Blobs['Frame']))
-            s = s + '%s :  %d -- %d \n'%(self.blbFls[i], f0, fn)
+            s = s + '%s :  %d -- %d \n'%(self.blobFiles[i], f0, fn)
         #print s
         return s
 
     
     
-    def load(self ,  FrameStart = None, FrameEnd = None):
+    def load(self,  FrameStart = None, FrameEnd = None):
         print(os.path.exists(self.dir))
         os.chdir(os.path.abspath(self.dir))
         print(os.path.abspath(os.curdir))
@@ -387,7 +387,7 @@ class extractor(object):
             
         for i in range(self.n):
             print ('unpacking blob%d'%i + '...')
-            self.readers[i].ReadBlobFile(self.blbFls[i], FrameStart ,
+            self.readers[i].ReadBlobFile(self.blobFiles[i], FrameStart ,
                         FrameEnd, FloatCoords = FloatCoords)
       
         
@@ -403,6 +403,7 @@ class extractor(object):
         ax.legend()
         ax.set_xlabel('frame #')
         ax.set_ylabel('number of blobs')
+        plt.show()
             
             
     def plot_frames(self,f_start,f_last):

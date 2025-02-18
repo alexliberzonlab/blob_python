@@ -463,9 +463,9 @@ class extractor(object):
         self.blbFls = blobFiles   # list(strings) blob data file name
         self.n = len(self.blbFls)
         self.readers = []
+        self.coord_format = coord_format
         for i in range(self.n):
             self.readers.append(blobReader())
-        self.coord_fmt = coord_format
     
     
     def __repr__(self):
@@ -493,9 +493,9 @@ class extractor(object):
     def load(self ,  FrameStart = None, FrameEnd = None):
         os.chdir(self.dir)
         
-        if self.coord_fmt == float:
+        if self.coord_format == float:
             FloatCoords = True
-        elif self.coord_fmt == int:
+        elif self.coord_format == int:
             FloatCoords = False
             
         self.frame_amount = []    # total amount of frames in each data set
@@ -571,14 +571,16 @@ class extractor(object):
         directory = os.path.join(os.getcwd() , 'Target_Files')
         
         if os.path.exists(directory):
-            usr = raw_input('Target_Files folder allready exsists. continue anyway? (y/n)')
-            if usr == 'y':
-                pass
-            elif usr == 'n':
-                print('terminating.')
-                return
-            else:
-                raise ValueError('unrecognized input: %c (y/n)' % (usr,str))
+            raise ValueError('Target_Files folder allready exsists.')
+        
+            # usr = raw_input('Target_Files folder allready exsists. continue anyway? (y/n)')
+            # if usr == 'y':
+            #     pass
+            # elif usr == 'n':
+            #     print('terminating.')
+            #     return
+            # else:
+            #     raise ValueError('unrecognized input: %c (y/n)' % (usr,str))
         
         if len(str(start_count)) > decimals:
             decimals = len(str(start_count))
@@ -630,11 +632,13 @@ class extractor(object):
         k = 6 + decimals
         for targ in l:
             b[int(targ[4])].append(int(targ[6:k]))
+            
         print('finished saving targets! start and end frames are:')
         m1,m2 = [],[]
         for i in b:
             m1.append(min(i))
             m2.append(max(i))
+
         print(max( m1 ) , min( m2 ))
         
         
